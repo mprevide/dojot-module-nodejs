@@ -1,6 +1,6 @@
 {
   "name": "@dojot/dojot-module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A library that provides utilities and methods for dojot",
   "engines": {
     "node": "<11.0.0"
