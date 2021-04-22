@@ -78,8 +78,6 @@ messenger.publish("service-status", config.management.tenant, "service X is up")
 
 ```
 
-
-
 ## Configuration
 
 This library might be configured in different ways. Each class (Messenger,
@@ -104,11 +102,17 @@ should have the following attributes at least:
     "timeoutSleep": 2,
     "connectionRetries": 5,
   },
-  "auth": {
-    "url": "http://auth:5000",
-    "timeoutSleep": 5,
-    "connectionRetries": 5,
-  },
+  "keycloak": {
+      "basePath": "http://apigw:8000/auth",
+      "timeoutSleep": 5,
+      "connectionRetries": 5,
+      "credentials": {
+        "username": "admin",
+        "password": "admin",
+        "grantType": "password",
+        "clientId":  "libraries",
+      }
+    },
   "deviceManager": {
     "url": "http://device-manager:5000",
     "timeoutSleep": 5,

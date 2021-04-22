@@ -10,10 +10,7 @@ jest.setTimeout(30000);
 describe('When keycloak respond successfully', () => {
 
 
-    let tenants = [{
-        someField: 'some field',
-        id: 'master'
-    },
+    let tenants = [
     {
         someField: 'some field',
         id: 'my_realm'
@@ -65,7 +62,7 @@ describe('When keycloak respond with error', () => {
     it('should try again n times', async () => {
 
         try {
-            await auth.getTenants()
+            await auth.getTenants();
         } catch (error) {
             expect(KcAdminClient.mock.calls.length - 1).toBe(defaultConfig.keycloak.connectionRetries)
         }
