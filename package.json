@@ -1,14 +1,18 @@
 {
   "name": "@dojot/dojot-module",
-  "version": "0.0.1-beta.8",
+  "version": "0.1.2",
   "description": "A library that provides utilities and methods for dojot",
+  "engines": {
+    "node": "<14"
+  },
   "main": "index.js",
   "scripts": {
     "test": "jest tests/unit-tests/*.test.js --coverage --report=html",
     "test:watch": "jest --watch tests/unit-tests/*.test.js --coverage --report=html",
     "mocks": "node ./tests/dojot-mock.js",
     "sample": "node examples/sample.js",
-    "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf"
+    "docs": "jsdoc -R ./README.md -p ./package.json -r -d ./docs --access all ./lib -c ./jsdoc.conf",
+    "check-licenses": "apache2-license-checker"
   },
   "repository": {
     "type": "git",
@@ -19,19 +23,36 @@
     "iot"
   ],
   "author": "Muhamed Avila",
+  "contributors": [
+    "Giovanni Curiel dos Santos",
+    "Raul Negreiros",
+    "Mariane Previde ",
+    "Rafael Augusto Scaraficci",
+    "Jonaphael Aristil",
+    "Matheus Campanha",
+    "Andrew Chuang",
+    "Eric Baum"
+  ],
   "bugs": {
     "url": "https://github.com/dojot/dojot-module-nodejs/issues"
   },
   "homepage": "https://github.com/dojot/dojot-module-nodejs/#readme",
-  "license": "GPL-3.0",
+  "license": "Apache-2.0",
+  "licenses": [
+    {
+      "type": "Apache-2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ],
   "dependencies": {
-    "@dojot/dojot-module-logger": "0.0.1-alpha.5",
+    "@dojot/dojot-module-logger": "^0.1.0",
     "axios": "^0.18.0",
     "express": "^4.16.3",
     "moment": "^2.22.2",
-    "node-rdkafka": "2.5.1",
     "uuid": "^3.3.2",
     "keycloak-admin": "1.13.0"
+    "node-rdkafka": "2.9.1",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "jest": "^24.1.0",
@@ -41,7 +62,8 @@
     "expect": "23.6.0",
     "jsdoc": "3.5.5",
     "mocha": "^5.2.0",
-    "sinon": "^6.1.4"
+    "sinon": "^6.1.4",
+    "@bbc/apache2-license-checker": "^1.1.4"
   },
   "jest": {
     "coverageDirectory": "./coverage/",

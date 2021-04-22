@@ -32,7 +32,7 @@ const Kafka = {
     flush: jest.fn(),
     on: jest.fn(),
     poll: jest.fn(),
-    produce: jest.fn(),
+    produce: jest.fn(() => Promise.resolve()),
     setPollInterval: jest.fn(),
   },
 
@@ -377,6 +377,26 @@ describe("Kafka Producer", () => {
       expect(messenger.producer.produce).toHaveBeenCalled();
 
     })
+
+    it("should publish a new message because of produce fail", () => {
+      const messenger = new Messenger("Test-messenger");
+      Kafka.producerMock.produce = jest.fn(() => Promise.reject());
+      messenger.producer = Kafka.producerMock;
+
+      const object = {
+        "key": "key-sample",
+        "message": "message-sample",
+        "partition": 0,
+        "subject": "subject-sample",
+        "tenant": "tenant-sample",
+      }
+      messenger.producerTopics[object.subject] = {};
+      messenger.producerTopics[object.subject][object.tenant] = object.tenant;
+      messenger.publish(object.subject, object.tenant, object.message, object.key, object.partition);
+      expect(messenger.producer.produce).toHaveBeenCalled();
+
+    })
+
   })
 
 })
