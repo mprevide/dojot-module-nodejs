@@ -105,11 +105,12 @@ should have the following attributes at least:
       "basePath": "http://apigw:8000/auth",
       "timeoutSleep": 5,
       "connectionRetries": 5,
+      "ignoreRealm": "master",
       "credentials": {
         "username": "admin",
         "password": "admin",
         "grantType": "password",
-        "clientId":  "libraries",
+        "clientId":  "admin-cli",
       }
     },
   "deviceManager": {
