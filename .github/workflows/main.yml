@@ -1,0 +1,97 @@
+name: Dojot-module-nodejs
+
+# Triggered after a branch is created, a tag or a branch is pushed or a PR
+on:
+  create:
+  push:
+  pull_request:
+
+jobs:
+
+  integration-tests:
+    name: Integration tests
+    # If the commit message contains 'ci skip', it is not necessary to run this job
+    if: contains(github.event.head_commit.message, 'ci skip') == false
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+
+    - name: checkout
+      uses: actions/checkout@v1
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: npm install and tests
+      env:
+        KAFKA_HOSTS: "localhost:9092"
+        KAFKA_GROUP_ID: "sample-travis"
+        LOCALHOST_MOCK: "http://localhost:5002"
+        DATA_BROKER_URL: ${LOCALHOST_MOCK}
+        AUTH_URL: ${LOCALHOST_MOCK}
+        DEVICE_MANAGER_URL: ${LOCALHOST_MOCK}]
+      run: |
+        npm install
+        npm install -g codecov
+        npm run docs
+        docker network create kafkanet
+        docker run -d --network kafkanet --publish 2181:2181 --name zookeeper zookeeper:3.4
+        docker run -d --name kafka --network kafkanet --publish 9092:9092 --publish 7203:7203 --env ZOOKEEPER_IP=zookeeper --env JAVA_OPTS="-Xms256m -Xmx512" --env KAFKA_ADVERTISED_HOST_NAME=127.0.0.1 ches/kafka
+        sleep 10
+        npm run mocks &
+        npm run test
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        file: coverage/lcov.info # Created when 'npm test' is executed
+        flags: Dojot-module-nodejs # Flags allow you to isolate coverage reports for different tests
+        name: dojot-module-nodejs # Custom name for the upload
+
+  gh-pages:
+    needs: integration-tests
+    name: Generate documentation and Publish in gh-pages
+    runs-on: ubuntu-18.04
+    if: contains(github.ref, 'refs/pull/') == false # if this a PR doesn't run
+    strategy:
+      matrix:
+        node-version: [10.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Version Doc
+        id: version_doc
+        env:
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          export TAG_VERSION=$(sh .github/workflows/scripts/translate_docker_tag.sh)
+          echo Documentation Version $TAG_VERSION
+          echo ::set-output name=version::$TAG_VERSION
+
+      - name: Generate docs
+        env:
+          VERSION_NAME: ${{ steps.version_doc.outputs.version }}
+        run: |
+          npm install
+          npm run docs
+
+      - name: Publish Documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./docs
+          destination_dir: docs
+          keep_files: true
+          allow_empty_commit: false

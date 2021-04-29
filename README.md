@@ -1,6 +1,5 @@
 # dojot-module
 
-[![Build Status](https://travis-ci.com/giovannicuriel/dojot-module-nodejs.svg?branch=master)](https://travis-ci.com/giovannicuriel/dojot-module-nodejs)
 [![CodeFactor](https://www.codefactor.io/repository/github/dojot/dojot-module-nodejs/badge)](https://www.codefactor.io/repository/github/dojot/dojot-module-nodejs)
 [![DeepScan grade](https://deepscan.io/api/teams/2690/projects/3914/branches/33256/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2690&pid=3914&bid=33256)
 [![codecov](https://codecov.io/gh/dojot/dojot-module-nodejs/branch/master/graph/badge.svg)](https://codecov.io/gh/dojot/dojot-module-nodejs)
