@@ -77,8 +77,6 @@ messenger.publish("service-status", config.management.tenant, "service X is up")
 
 ```
 
-
-
 ## Configuration
 
 This library might be configured in different ways. Each class (Messenger,
@@ -103,11 +101,18 @@ should have the following attributes at least:
     "timeoutSleep": 2,
     "connectionRetries": 5,
   },
-  "auth": {
-    "url": "http://auth:5000",
-    "timeoutSleep": 5,
-    "connectionRetries": 5,
-  },
+  "keycloak": {
+      "basePath": "http://apigw:8000/auth",
+      "timeoutSleep": 5,
+      "connectionRetries": 5,
+      "ignoreRealm": "master",
+      "credentials": {
+        "username": "admin",
+        "password": "admin",
+        "grantType": "password",
+        "clientId":  "admin-cli",
+      }
+    },
   "deviceManager": {
     "url": "http://device-manager:5000",
     "timeoutSleep": 5,
@@ -145,7 +150,9 @@ configuration. They are:
 export KAFKA_HOSTS = "kafka:9092"
 export KAFKA_GROUP_ID = "dojot-module"
 export DATA_BROKER_URL = "http://data-broker"
-export AUTH_URL = "http://auth:5000"
+export KEYCLOAK_URL = "http://keycloak:8080"
+export KEYCLOAK_USER = "admin"
+export KEYCLOAK_PASSWORD = "admin"
 export DEVICE_MANAGER_URL = "http://device-manager:5000"
 export DOJOT_MANAGEMENT_USER = "dojot-management"
 export DOJOT_MANAGEMENT_TENANT = "dojot-management"
