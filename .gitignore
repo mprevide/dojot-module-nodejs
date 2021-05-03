@@ -68,3 +68,6 @@ typings/
 
 # documentation folder
 docs/
+
+# local history
+.history

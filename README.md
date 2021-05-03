@@ -3,6 +3,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/dojot/dojot-module-nodejs/badge)](https://www.codefactor.io/repository/github/dojot/dojot-module-nodejs)
 [![DeepScan grade](https://deepscan.io/api/teams/2690/projects/3914/branches/33256/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=2690&pid=3914&bid=33256)
 [![codecov](https://codecov.io/gh/dojot/dojot-module-nodejs/branch/master/graph/badge.svg)](https://codecov.io/gh/dojot/dojot-module-nodejs)
+[![npm version](https://badge.fury.io/js/%40dojot%2Fdojot-module.svg)](https://badge.fury.io/js/%40dojot%2Fdojot-module)
 
 Common library to be used in dojot modules.
 
@@ -161,3 +162,8 @@ export DOJOT_SUBJECT_DEVICES = "dojot.device-manager.device"
 export DOJOT_SUBJECT_DEVICE_DATA = "device-data"
 ```
 
+# **License**
+
+The dojot-module-nodejs source code is released under Apache License 2.0.
+
+Check NOTICE and LICENSE files for more information.

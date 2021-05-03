@@ -26,7 +26,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: npm install and tests
+    - name: npm install, tests and check-licenses
       env:
         KAFKA_HOSTS: "localhost:9092"
         KAFKA_GROUP_ID: "sample-travis"
@@ -44,6 +44,7 @@ jobs:
         sleep 10
         npm run mocks &
         npm run test
+        npm run check-licenses
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
