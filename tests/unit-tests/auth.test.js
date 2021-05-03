@@ -1,176 +1,129 @@
 "use strict";
 
-/**
- * Unit tests for Auth module
- *
- * This module has the following dependencies:
- *
- * - axios
- */
+const KcAdminClient = require("keycloak-admin").default;
+const auth = require("../../lib/auth");
+const defaultConfig = require("../../lib/config");
 
-const Auth = require("../../lib/auth");
-const axios = require("axios");
+jest.mock('keycloak-admin');
+jest.setTimeout(30000);
 
-//
-// Mocking dependencies
-//
-jest.mock("axios");
-jest.useFakeTimers();
+describe('When keycloak respond successfully', () => {
 
 
-describe("Kafka producer", () => {
-    var mockConfig = {
-        auth: {
-            connectionRetries: 1,
-            timeoutSleep: 10
-        },
-        dojot: {
-            management: {
-                tenant: "sample-tenant"
+    let tenants = [
+    {
+        someField: 'some field',
+        id: 'my_realm'
+    }]
+
+    KcAdminClient.mockImplementation(() => {
+        return {
+            auth: () => {
+                return null
+            },
+            realms: {
+                find: () => {
+                    return tenants
+                }
             }
-        }
-    };
-
-    beforeAll(() => {
-
+        };
     });
 
     afterEach(() => {
-        axios.mockReset();
+        KcAdminClient.mockReset();
     });
 
     afterAll(() => {
-        axios.mockRestore();
+        KcAdminClient.mockRestore();
     });
 
-    describe("Retrieving tenants", () => {
-        it("should retrieve a list of tenants successfully", (done) => {
-            /**
-             * This test will check whether the module is able to successfully
-             * retrieve a new topic from Data Broker
-             */
-            axios.mockReturnValue(Promise.resolve({ data: { tenants: ["sample-tenant"] } }));
-
-            // >> Tested code
-            const getTenantsPromise = Auth.getTenants("sample-service", mockConfig);
-            // << Tested code
-
-            // >> Results verification
-            getTenantsPromise.then((tenants) => {
-                expect(tenants).toEqual(["sample-tenant"]);
-                expect(axios).toBeCalledWith({
-                    url: "sample-service/admin/tenants",
-                    method: "get",
-                    headers: expect.anything(),
-                });
-                done();
-            }).catch((error) => {
-                done(`should not raise an error: ${error}`);
-            });
-            // << Results verification
-        });
-
-        it("should retrieve a list of tenants successfully with default config", (done) => {
-            /**
-             * This test will check whether the module is able to successfully
-             * retrieve a new topic from Data Broker
-             */
-            axios.mockReturnValue(Promise.resolve({ data: { tenants: ["sample-tenant-default"] } }));
-
-            // >> Tested code
-            const getTenantsPromise = Auth.getTenants("sample-service-default");
-            // << Tested code
-
-            // >> Results verification
-            getTenantsPromise.then((tenants) => {
-                expect(tenants).toEqual(["sample-tenant-default"]);
-                expect(axios).toBeCalledWith({
-                    url: "sample-service-default/admin/tenants",
-                    method: "get",
-                    headers: expect.anything(),
-                });
-                done();
-            }).catch((error) => {
-                done(`should not raise an error: ${error}`);
-            });
-            // << Results verification
-        });
-
-
-        it("should deal with unexpected message formats", (done) => {
-            /**
-             * This test will check whether the module is able deal with
-             * malformed responses from Data Broker
-             */
-            axios.mockReturnValue(Promise.resolve({data: "not-standard"}));
-
-            // >> Tested code
-            const getTenantsPromise = Auth.getTenants("sample-service", mockConfig);
-            // << Tested code
-
-            // >> Results verification
-            getTenantsPromise.then(() => {
-                done("promise should not be resolved");
-            }).catch((error) => {
-                expect(error).toEqual(`Invalid message from Auth: not-standard`);
-                done();
-            });
-            // << Results verification
-        });
-
-        it("should retry if Auth is not yet accessible", (done) => {
-            /**
-             * This test will check whether the module is able to deal with
-             * intermittent failures in Data Broker
-             */
-            jest.useRealTimers();
-            mockConfig.auth.connectionRetries = 2;
-            mockConfig.auth.timeoutSleep = 0.01;
-            axios.mockReturnValueOnce(Promise.reject("not yet ready")).mockReturnValueOnce(Promise.resolve({ data: { tenants: ["sample-tenant-delayed"] } }));
-
-            // >> Tested code
-            const getTenantsPromise = Auth.getTenants("sample-service", mockConfig);
-            // << Tested code
-
-            // >> Results verification
-            getTenantsPromise.then((tenants) => {
-                expect(tenants).toEqual(["sample-tenant-delayed"]);
-                expect(axios).toBeCalledWith({
-                    url: "sample-service/admin/tenants",
-                    method: "get",
-                    headers: expect.anything(),
-                });
-                jest.useFakeTimers();
-                done();
-            }).catch((error) => {
-                jest.useFakeTimers();
-                done(`should not raise an error: ${error}`);
-            });
-            // << Results verification
-        });
-
-        it("should reject if Data Broker can't be accessed after a few retries", (done) => {
-            /**
-             * This test will check whether the module is able to deal with fatal
-             * failures in Data Broker
-             */
-            jest.useRealTimers();
-            axios.mockReturnValue(Promise.reject("not yet ready"));
-
-            // >> Tested code
-            const getTenantsPromise = Auth.getTenants("sample-service", mockConfig);
-            // << Tested code
-
-            // >> Results verification
-            getTenantsPromise.then(() => {
-                jest.useFakeTimers();
-                done("should not be resolved.");
-            }).catch((error) => {
-                jest.useFakeTimers();
-                expect(error).toEqual("Could not reach Auth.");
-                done();
-            });
-            // << Results verification
-        });
+    it('should format tenants array correctly', async () => {
+        let data = await auth.getTenants()
+        return expect(data).toEqual(tenants.map(t => t.id));
     });
 });
+
+describe('When keycloak respond with error', () => {
+    beforeAll(() => {
+
+        KcAdminClient.mockImplementation(() => {
+            return {
+                auth: () => {
+                    throw new Error('some error')
+                }
+            };
+        });
+    });
+
+    afterAll(() => {
+        KcAdminClient.mockRestore();
+    });
+
+    it('should try again n times', async () => {
+
+        try {
+            await auth.getTenants();
+        } catch (error) {
+            expect(KcAdminClient.mock.calls.length - 1).toBe(defaultConfig.keycloak.connectionRetries)
+        }
+
+    });
+
+    it('should throw an exception', async () => {
+
+        try {
+            await auth.getTenants()
+        } catch (error) {
+            expect(error).toBe('keycloak admin: some error')
+        }
+
+    });
+
+
+});
+
+
+describe('When it uses a configuration file', () => {
+    beforeAll(() => {
+        jest.mock('./keycloak-admin'.default, () => {
+            return jest.fn().mockImplementation(() => {
+                return {
+                    auth: () => { }
+                };
+            });
+        });
+    });
+
+    afterEach(() => {
+        KcAdminClient.mockReset();
+    });
+
+    afterAll(() => {
+        KcAdminClient.mockRestore();
+    });
+
+    it('should get parameters from a configuration file', async () => {
+
+        expect.assertions(2);
+
+        try {
+            await auth.getTenants()
+        } catch (error) {
+            expect(KcAdminClient.mock.instances[0].auth.mock.calls[0][0]).
+                toEqual(defaultConfig.keycloak.credentials),
+
+                expect(KcAdminClient.mock.calls[0][0].baseUrl).
+                    toBe(defaultConfig.keycloak.basePath)
+        }
+    });
+});
+
+describe('When a dummy token is requested', () => {
+
+    it('should generate a dummy token', () => {
+
+        let dummyToken = auth.getManagementToken("sample-tenant")
+        expect(dummyToken).not.toBeNull();
+    });
+});
+
