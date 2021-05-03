@@ -157,6 +157,6 @@ export DOJOT_SUBJECT_DEVICE_DATA = "device-data"
 
 # **License**
 
-The Kafka-WS source code is released under Apache License 2.0.
+The dojot-module-nodejs source code is released under Apache License 2.0.
 
 Check NOTICE and LICENSE files for more information.
