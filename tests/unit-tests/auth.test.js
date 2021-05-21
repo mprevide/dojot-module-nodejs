@@ -39,7 +39,7 @@ describe('When keycloak respond successfully', () => {
 
     it('should format tenants array correctly', async () => {
         let data = await auth.getTenants()
-        return expect(data).toEqual(tenants.map(t => t.id));
+        return expect(data).toEqual(tenants.map(t => t.realm));
     });
 });
 
