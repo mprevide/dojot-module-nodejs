@@ -13,7 +13,7 @@ describe('When keycloak respond successfully', () => {
     let tenants = [
     {
         someField: 'some field',
-        id: 'my_realm'
+        realm: 'my_realm',
     }]
 
     KcAdminClient.mockImplementation(() => {
