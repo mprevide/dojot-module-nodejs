@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3>@dojot/dojot-module 0.2.2</h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><h1>dojot-module</h1><p><a href="https://www.codefactor.io/repository/github/dojot/dojot-module-nodejs"><img src="https://www.codefactor.io/repository/github/dojot/dojot-module-nodejs/badge" alt="CodeFactor"></a>
+<a href="https://deepscan.io/dashboard#view=project&amp;tid=2690&amp;pid=3914&amp;bid=33256"><img src="https://deepscan.io/api/teams/2690/projects/3914/branches/33256/badge/grade.svg" alt="DeepScan grade"></a>
+<a href="https://codecov.io/gh/dojot/dojot-module-nodejs"><img src="https://codecov.io/gh/dojot/dojot-module-nodejs/branch/master/graph/badge.svg" alt="codecov"></a>
+<a href="https://badge.fury.io/js/%40dojot%2Fdojot-module"><img src="https://badge.fury.io/js/%40dojot%2Fdojot-module.svg" alt="npm version"></a></p>
+<p>Common library to be used in dojot modules.</p>
+<h2>Overview</h2><p>This library is intended to handle all the necessary operations that a service
+needs to perform in order to communicate with other dojot services. These
+operations are:</p>
+<ul>
+<li>Sending and receiving messages via Kafka;</li>
+<li>Subscribing to new Kafka topics whenever a new tenant is created;</li>
+</ul>
+<p>Thus, the service should only inform the library of which subjects it is
+interested in and how the messages should be processed.</p>
+<h2>How to install</h2><p>Installing this package is no different than any other from npm. Just execute:</p>
+<pre class="prettyprint source lang-bash"><code>
+npm install @dojot/dojot-module
+</code></pre><p>which will install this module in its latest version.</p>
+<h2>How to use</h2><p>Using it is also very easy. All normal operations involve using the Messenger
+class, which is responsible for communicating with the message broker (Kafka)
+and generating events to any component interested in such messages. Also, it
+provides a very simple mechanism of event generation and subscription so that
+a library could use it to generate more specific events based on those messages.
+More on that later.</p>
+<p>The folowing code is an example of a code that simply prints any message that
+it receives from a particular subject.</p>
+<pre class="prettyprint source lang-javascript"><code>&quot;use strict&quot;;
+var dojot = require(&quot;@dojot/dojot-module&quot;);
+var logger = require(&quot;@dojot/dojot-module-logger&quot;).logger;
+
+var config = dojot.Config;
+var messenger = new dojot.Messenger(&quot;dojot-snoop&quot;, config);
+messenger.init();
+
+// Create a channel using a default subject &quot;device-data&quot;
+// These &quot;communication channels&quot; will handle all the tenant processing and
+// message receival, so that the service implementation would only set the
+// message processing callback (done by 'messenger.on' calls).
+//
+// Creating a new channel will inform the library that the service is interested
+// in read/write messages to a particular subject.
+messenger.createChannel(config.dojot.subjects.deviceData, &quot;rw&quot;);
+
+// Create a channel using a particular subject &quot;service-status&quot;
+messenger.createChannel(&quot;service-status&quot;, &quot;w&quot;);
+
+// Register callback to process incoming device data
+messenger.on(config.dojot.subjects.deviceData, &quot;message&quot;, (tenant, message, extraInfo) => {
+  logger.info(`Client: Received message in device data subject.`);
+  logger.info(`Client: Tenant is: ${tenant}`);
+  logger.info(`Client: Message is: ${message}`);
+  logger.info(`Client: ExtraInfo is: ${extraInfo}`);
+});
+
+// Publish a message on &quot;service-status&quot; subject using &quot;dojot-management&quot; tenant
+messenger.publish(&quot;service-status&quot;, config.management.tenant, &quot;service X is up&quot;);
+</code></pre><h2>Configuration</h2><p>This library might be configured in different ways. Each class (Messenger,
+Consumer and Producer) receives a configuration object in its constructor. It
+should have the following attributes at least:</p>
+<pre class="prettyprint source lang-json"><code>{
+  &quot;kafka&quot;: {
+    &quot;producer&quot;: {
+      &quot;metadata.brokers.list&quot;: &quot;kafka:9092&quot;,
+      &quot;socket.keepalive.enable&quot;: true,
+      &quot;dr_cb&quot;: true
+    },
+    &quot;consumer&quot;: {
+      &quot;group.id&quot;: &quot;sample-group&quot;,
+      &quot;metadata.brokers.list&quot;: &quot;kafka:9092&quot;,
+    }
+  },
+  &quot;databroker&quot;: {
+    &quot;url&quot;: &quot;http://data-broker&quot;,
+    &quot;timeoutSleep&quot;: 2,
+    &quot;connectionRetries&quot;: 5,
+  },
+  &quot;keycloak&quot;: {
+      &quot;basePath&quot;: &quot;http://apigw:8000/auth&quot;,
+      &quot;timeoutSleep&quot;: 5,
+      &quot;connectionRetries&quot;: 5,
+      &quot;ignoreRealm&quot;: &quot;master&quot;,
+      &quot;credentials&quot;: {
+        &quot;username&quot;: &quot;admin&quot;,
+        &quot;password&quot;: &quot;admin&quot;,
+        &quot;grantType&quot;: &quot;password&quot;,
+        &quot;clientId&quot;:  &quot;admin-cli&quot;,
+      }
+    },
+  &quot;deviceManager&quot;: {
+    &quot;url&quot;: &quot;http://device-manager:5000&quot;,
+    &quot;timeoutSleep&quot;: 5,
+    &quot;connectionRetries&quot;: 3,
+  },
+  &quot;dojot&quot;: {
+    &quot;management&quot;: {
+      &quot;user&quot;: &quot;dojot-management&quot;,
+      &quot;tenant&quot;: &quot;dojot-management&quot;
+    },
+    &quot;subjects&quot;: {
+      &quot;tenancy&quot;: &quot;dojot.tenancy&quot;,
+      &quot;devices&quot;: &quot;dojot.device-manager.device&quot;,
+      &quot;deviceData&quot;: &quot;device-data&quot;,
+    }
+  }
+}</code></pre><p>All these parameters can be found in <a href="./lib/config.js">config.js</a> file. It is
+recommended that the service implementation use this file as basis to configure
+other classes.</p>
+<p>The Kafka section follows the parameters used by
+<a href="https://github.com/Blizzard/node-rdkafka">node-rdkafka</a> library, which in turn
+follows the configuration of
+<a href="https://github.com/edenhill/librdkafka">librdkafka</a>. These are the bare
+minumum that this library needs in order to operate correctly. All the values
+are the default ones, they might be changed depending on deployment scenario.</p>
+<p>The config.js file will also get a few environment variables in order to ease
+configuration. They are:</p>
+<pre class="prettyprint source lang-bash"><code>export KAFKA_HOSTS = &quot;kafka:9092&quot;
+export KAFKA_GROUP_ID = &quot;dojot-module&quot;
+export DATA_BROKER_URL = &quot;http://data-broker&quot;
+export KEYCLOAK_URL = &quot;http://keycloak:8080&quot;
+export KEYCLOAK_USER = &quot;admin&quot;
+export KEYCLOAK_PASSWORD = &quot;admin&quot;
+export DEVICE_MANAGER_URL = &quot;http://device-manager:5000&quot;
+export DOJOT_MANAGEMENT_USER = &quot;dojot-management&quot;
+export DOJOT_MANAGEMENT_TENANT = &quot;dojot-management&quot;
+export DOJOT_SUBJECT_TENANCY = &quot;dojot.tenancy&quot;
+export DOJOT_SUBJECT_DEVICES = &quot;dojot.device-manager.device&quot;
+export DOJOT_SUBJECT_DEVICE_DATA = &quot;device-data&quot;</code></pre><h1><strong>License</strong></h1><p>The dojot-module-nodejs source code is released under Apache License 2.0.</p>
+<p>Check NOTICE and LICENSE files for more information.</p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Consumer.html">Consumer</a></li><li><a href="Messenger.html">Messenger</a></li><li><a href="Producer.html">Producer</a></li><li><a href="TopicManager.html">TopicManager</a></li></ul><h3>Global</h3><ul><li><a href="global.html#getManagementToken">getManagementToken</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Thu May 27 2021 13:34:40 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
