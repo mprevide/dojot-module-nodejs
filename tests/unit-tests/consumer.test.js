@@ -79,7 +79,7 @@ describe("Kafka consumer", () => {
         // << Tested code
 
         // >> Results verification
-        expect(Kafka.KafkaConsumer).toHaveBeenCalledWith(mockConfig.kafka.consumer);
+        expect(Kafka.KafkaConsumer).toHaveBeenCalledWith(mockConfig.kafka.consumer,{});
         expect(consumer.consumer).toBeDefined();
         expect(consumer.isReady).toBeFalsy();
         expect(consumer.messageCallbacks).toEqual({});
